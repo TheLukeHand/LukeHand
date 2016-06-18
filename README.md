@@ -2,10 +2,10 @@
 
 Welcome to the master open source repository for the development of the Luke Hand.
 
-The purpose of the Luke Hand is to help improve the quality of life for people with limb differences throughout the world by creating open source bionic technology that helps them transition from disabled to superabled.
+Purpose: To help improve the quality of life for people with limb differences throughout the world by creating open source bionic technology that helps them transition from disabled to superabled.
 
-The mission of the Luke Hand is to create an open source bionic hand that matches the functionality of a human hand, within four years, sized for a four year-old.
+Mission: To create an open source bionic hand that matches the functionality of a human hand, within four years, sized for a four year-old.
 
-This repository contains all the open source assets that are being used to create the Luke Hand.
+Core values: Combining the powers of technology and teamwork to help make the world a better place.
 
 Questions? Email info@lukehand.org.
