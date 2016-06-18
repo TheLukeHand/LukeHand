@@ -8,3 +8,5 @@ The purpose of the Luke Hand is to help improve the quality of life for people w
 The mission of the Luke Hand is to create an open source bionic hand that matches the functionality of a human hand, within four years, sized for a four year-old.
 
 This repository contains all the open source assets that are being used to create the Luke Hand.
+
+Questions? Email info@lukehand.org
