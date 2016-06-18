@@ -8,4 +8,4 @@ The mission of the Luke Hand is to create an open source bionic hand that matche
 
 This repository contains all the open source assets that are being used to create the Luke Hand.
 
-Questions? Email info@lukehand.org
+Questions? Email info@lukehand.org.
