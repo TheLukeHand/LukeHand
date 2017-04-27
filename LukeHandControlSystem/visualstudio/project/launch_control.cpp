@@ -37,6 +37,7 @@ using namespace arma;
 #define CLASSIFY 7
 #define SEND2SOCKET 8
 #define EXIT 9
+#define DEBUG 10
 
 //Define Classes
 #define REST 0x3E8;
@@ -54,6 +55,9 @@ using namespace arma;
 //Set Parameters for the training data
 const int num_classes = 5;
 const int fs = 200;
+
+typedef std::vector<int> stdvec;
+
 
 class DataCollector : public myo::DeviceListener {
 public:
@@ -158,6 +162,36 @@ void printVector(vector<int> vec) {
 	}
 }
 
+int numWindows(mat matrix, int fs, int win_size, int win_disp) {
+	int mat_size = matrix.n_rows;
+	int start = 1 + win_size*fs/1000;
+	int step = win_disp*fs/1000;
+	int end = mat_size + win_size*fs/1000;
+	vector<int> svec = createVector(start, step, end);
+	colvec armvec = conv_to< colvec >::from(svec);
+	uvec idx = find(armvec <= mat_size + 1);
+	return idx.n_rows;
+
+}
+
+mat lineLength(mat X) {
+	return sum(abs(diff(X)));
+
+}
+
+mat area(mat X) {
+	return sum(abs(X));
+}
+
+//Claculates Feature Matrix for a given raw data matrix
+mat calculateFeatures(mat raw_data, int num_windows) {
+	mat feature_mat;
+	feature_mat.zeros(num_windows,16);
+	for (int i = 0; i < num_windows; ++i) {
+		
+	}
+}
+
 
 
 int main(int argc, char** argv)
@@ -220,11 +254,14 @@ int main(int argc, char** argv)
 			}
 			else if(choice == 2) {
 				state = EXTRACT_FEATURES;
+				//state = DEBUG;
 			}
 			break;
-	    
+		case DEBUG:
+
+			break;
 		case LOG:
-			time_t tick, tock;
+			time_t tick;
 			tick = time(0);
 			collector.openFiles(gestures[gesture_type-1]);
 			while(difftime(time(0),tick) < 10){
@@ -241,12 +278,32 @@ int main(int argc, char** argv)
 			break;
 
 		case EXTRACT_FEATURES: {
-			string train_data_file;
-			train_data_file = "train_raw.csv";
-			mat raw_data;
-			raw_data.load(train_data_file, csv_ascii);
-			cout << raw_data.n_cols << endl << raw_data.n_rows << endl;
+			mat rest, fist, wavein, waveout, thumbsup;
+			mat rest_feats, wavein_feats, waveout_feats, thumbsup_feats;
+			cout << "Loading Files ..." << endl;
+			rest.load("rest.csv", csv_ascii);
+			fist.load("fist.csv", csv_ascii);
+			wavein.load("wavein.csv", csv_ascii);
+			waveout.load("waveout.csv", csv_ascii);
+			thumbsup.load("thumbsup.csv", csv_ascii);
+			cout << "Cleaning up files ..." << endl;
+			rest = rest.cols(1, 8);
+			fist = fist.cols(1, 8);
+			wavein = wavein.cols(1, 8);
+			waveout = waveout.cols(1, 8);
+			thumbsup = thumbsup.cols(1, 8);
+			cout << "Calculating features ..." << endl;
+			int nrest_wins, nfist_wins, nwaveout_wins, nwavein_wins, nthumbsup_wins;
+			//////////////////    Train Rest ///////////
+			nrest_wins = numWindows(rest, fs, 500, 200);
+			cout << nrest_wins << endl;
+			//Extract features per clip
 			
+
+
+
+
+            
 
 		}
 			break;

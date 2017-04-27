@@ -1,14 +1,14 @@
 ﻿C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V140\Microsoft.CppBuild.targets(392,5): warning MSB8028: The intermediate directory (Debug\) contains files shared from another project (Control.vcxproj).  This can lead to incorrect clean and rebuild behavior.
   launch_control.cpp
-c:\users\mushont\documents\lukehand\controlsystem\include\myo\cxx\impl\../detail/ThrowOnError.hpp(39): warning C4297: 'myo::ThrowOnError::~ThrowOnError': function assumed not to throw an exception but does
-  c:\users\mushont\documents\lukehand\controlsystem\include\myo\cxx\impl\../detail/ThrowOnError.hpp(39): note: destructor or deallocator has a (possibly implicit) non-throwing exception specification
-c:\users\mushont\documents\lukehand\controlsystem\include\myo\cxx\impl\../detail/ThrowOnError.hpp(45): warning C4297: 'myo::ThrowOnError::~ThrowOnError': function assumed not to throw an exception but does
-  c:\users\mushont\documents\lukehand\controlsystem\include\myo\cxx\impl\../detail/ThrowOnError.hpp(45): note: destructor or deallocator has a (possibly implicit) non-throwing exception specification
-launch_control.cpp(134): warning C4018: '<': signed/unsigned mismatch
-launch_control.cpp(135): warning C4018: '<=': signed/unsigned mismatch
-launch_control.cpp(143): warning C4018: '<': signed/unsigned mismatch
-launch_control.cpp(202): warning C4018: '<': signed/unsigned mismatch
-launch_control.cpp(214): warning C4101: 'tock': unreferenced local variable
-  Control-System.vcxproj -> C:\Users\mushont\Documents\LukeHand\ControlSystem\samples\Debug\Control-System.exe
-  Control-System.vcxproj -> C:\Users\mushont\Documents\LukeHand\ControlSystem\samples\Debug\Control-System.pdb (Full PDB)
+c:\users\mushont\source\repos\smartbionics\lukehandcontrolsystem\visualstudio\include\myo\cxx\impl\../detail/ThrowOnError.hpp(39): warning C4297: 'myo::ThrowOnError::~ThrowOnError': function assumed not to throw an exception but does
+  c:\users\mushont\source\repos\smartbionics\lukehandcontrolsystem\visualstudio\include\myo\cxx\impl\../detail/ThrowOnError.hpp(39): note: destructor or deallocator has a (possibly implicit) non-throwing exception specification
+c:\users\mushont\source\repos\smartbionics\lukehandcontrolsystem\visualstudio\include\myo\cxx\impl\../detail/ThrowOnError.hpp(45): warning C4297: 'myo::ThrowOnError::~ThrowOnError': function assumed not to throw an exception but does
+  c:\users\mushont\source\repos\smartbionics\lukehandcontrolsystem\visualstudio\include\myo\cxx\impl\../detail/ThrowOnError.hpp(45): note: destructor or deallocator has a (possibly implicit) non-throwing exception specification
+launch_control.cpp(147): warning C4018: '<': signed/unsigned mismatch
+launch_control.cpp(148): warning C4018: '<=': signed/unsigned mismatch
+launch_control.cpp(156): warning C4018: '<': signed/unsigned mismatch
+launch_control.cpp(215): warning C4018: '<': signed/unsigned mismatch
+launch_control.cpp(227): warning C4101: 'tock': unreferenced local variable
+  Control-System.vcxproj -> C:\Users\mushont\Source\Repos\SmartBionics\LukeHandControlSystem\visualstudio\project\Debug\Control-System.exe
+  Control-System.vcxproj -> C:\Users\mushont\Source\Repos\SmartBionics\LukeHandControlSystem\visualstudio\project\Debug\Control-System.pdb (Full PDB)
           1 file(s) copied.
