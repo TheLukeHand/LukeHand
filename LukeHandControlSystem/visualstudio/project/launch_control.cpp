@@ -10,6 +10,7 @@
 #include <string>
 #include <myo/myo.hpp>
 #include <vector>
+#include <stdlib.h>
 using namespace std;
 
 #include <cmath>
@@ -40,21 +41,21 @@ using namespace arma;
 #define DEBUG 10
 
 //Define Classes
-#define REST 0x3E8;
-#define FIST 0x7D0;
-#define WAVE_IN 0xBB8;
-#define WAVE_OUT 0xFA0;
-#define THUMBS_UP 0x1388;
-#define OK 0x1770;
-#define OPEN_HAND 0x1B58;
-#define PEACE 0x1F40;
-#define ROCK_ON 0x1F40;
+#define REST 1;
+#define FIST 2;
+#define WAVE_IN 3;
+#define WAVE_OUT 4;
+#define THUMBS_UP 5;
+#define OK 6;
+#define OPEN_HAND 7;
+#define PEACE 8;
+#define ROCK_ON 9;
 //Will add more gesture definitions here.
 
 
 //Set Parameters for the training data
 const int num_classes = 5;
-const int fs = 200;
+const int FS = 200;
 
 typedef std::vector<int> stdvec;
 
@@ -171,26 +172,58 @@ int numWindows(mat matrix, int fs, int win_size, int win_disp) {
 	colvec armvec = conv_to< colvec >::from(svec);
 	uvec idx = find(armvec <= mat_size + 1);
 	return idx.n_rows;
-
+	
 }
 
+//Calculate Line length feature of a matrix given a raw data matrixe
 mat lineLength(mat X) {
 	return sum(abs(diff(X)));
 
 }
 
+//Calculate Area Feature Matrix given raw data
 mat area(mat X) {
 	return sum(abs(X));
 }
 
 //Claculates Feature Matrix for a given raw data matrix
-mat calculateFeatures(mat raw_data, int num_windows) {
-	mat feature_mat;
-	feature_mat.zeros(num_windows,16);
-	for (int i = 0; i < num_windows; ++i) {
-		
+mat calculateFeatures(mat raw_data, int num_windows, int win_size, int win_disp, int fs) {
+	mat ll_mat;
+	mat area_mat;
+	ll_mat.zeros(num_windows,8);
+	area_mat.zeros(num_windows, 8);
+
+
+	for (int i = 1; i <= num_windows; ++i) {
+		int p = 1 + win_disp*fs*(i - 1) / 1000;
+		int q = 1 + win_disp*fs*(i - 1)/1000 + win_size*fs/1000 - 1;
+		//cout << p << endl << q << endl;
+		//Sleep(2000);
+		mat clip = raw_data.rows(p-1,q-1);
+		ll_mat.row(i-1) = lineLength(clip);
+		area_mat.row(i-1) = area(clip);
 	}
+	//add elements horizontally:
+	colvec ll_vec = sum(ll_mat, 1);
+	colvec area_vec = sum(area_mat, 1);
+
+	//normalize features:
+	//double ll_mean = mean(ll_vec);
+	//double ll_sdev = stddev(ll_vec);
+
+	//double area_mean = mean(area_vec);
+	//double area_sdev = stddev(area_vec);
+
+	//ll_vec = (ll_vec - ll_mean) / ll_sdev;
+	//area_vec = (area_vec - area_mean) / area_sdev;
+
+
+	mat feature_mat;
+	feature_mat = join_horiz(ll_vec , area_vec);
+	return feature_mat;
 }
+
+
 
 
 
@@ -230,7 +263,7 @@ int main(int argc, char** argv)
     while (1) {
         // In each iteration of our main loop, we run the Myo event loop for a set number of milliseconds.
         // In this case, we wish to update our display 50 times a second, so we run for 1000/20 milliseconds.
-        hub.run(1000/fs);
+        hub.run(1000/FS);
         // After processing events, we call the print() member function we defined above to print out the values we've
         // obtained from any events that have occurred.
 		switch (state) { //Begine State Machine
@@ -264,9 +297,10 @@ int main(int argc, char** argv)
 			time_t tick;
 			tick = time(0);
 			collector.openFiles(gestures[gesture_type-1]);
-			while(difftime(time(0),tick) < 10){
-			collector.print();
-			if (difftime(time(0), tick) >= 10) {
+			while(difftime(time(0),tick) < 5){
+			//collector.print();
+			if (difftime(time(0), tick) >= 5) {
+				//collector.closeFiles();
 				state = INIT;
 				break;
 			}
@@ -279,7 +313,7 @@ int main(int argc, char** argv)
 
 		case EXTRACT_FEATURES: {
 			mat rest, fist, wavein, waveout, thumbsup;
-			mat rest_feats, wavein_feats, waveout_feats, thumbsup_feats;
+			mat rest_feats, fist_feats, wavein_feats, waveout_feats, thumbsup_feats;
 			cout << "Loading Files ..." << endl;
 			rest.load("rest.csv", csv_ascii);
 			fist.load("fist.csv", csv_ascii);
@@ -295,15 +329,28 @@ int main(int argc, char** argv)
 			cout << "Calculating features ..." << endl;
 			int nrest_wins, nfist_wins, nwaveout_wins, nwavein_wins, nthumbsup_wins;
 			//////////////////    Train Rest ///////////
-			nrest_wins = numWindows(rest, fs, 500, 200);
-			cout << nrest_wins << endl;
+			nrest_wins = numWindows(rest, FS, 500, 200);
+			nfist_wins = numWindows(fist, FS, 500, 200);
+			nwavein_wins = numWindows(wavein, FS, 500, 200);
+			nwaveout_wins = numWindows(waveout, FS, 500, 200);
+			nthumbsup_wins = numWindows(thumbsup, FS, 500, 200);
+			cout << "Done with windows" << endl;
+			rest_feats = calculateFeatures(rest, nrest_wins, 500, 200, FS);
+			fist_feats = calculateFeatures(fist, nfist_wins, 500, 200, FS);
+			wavein_feats = calculateFeatures(wavein, nwavein_wins, 500, 200, FS);
+		    waveout_feats = calculateFeatures(waveout, nwaveout_wins, 500, 200, FS);
+			thumbsup_feats = calculateFeatures(thumbsup, nthumbsup_wins, 500, 200, FS);
+			cout << "done calculating" << endl;
+			cout << "saving" << endl;
+			rest_feats.save("rest.dat",raw_ascii);
+			fist_feats.save("fist.dat", raw_ascii);
+			wavein_feats.save("wavein.dat", raw_ascii);
+			waveout_feats.save("waveout.dat", raw_ascii);
+			thumbsup_feats.save("thumbsup.dat", raw_ascii);
+
+			state = CLASSIFY;
 			//Extract features per clip
-			
-
-
-
-
-            
+		  
 
 		}
 			break;
@@ -320,6 +367,9 @@ int main(int argc, char** argv)
 			//LDA
 
 			gesture = OK;
+			collector.print();
+			//cout << gesture;
+
 			break;
 
 		case SEND2SOCKET:
