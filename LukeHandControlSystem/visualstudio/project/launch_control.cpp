@@ -186,12 +186,24 @@ mat area(mat X) {
 	return sum(abs(X));
 }
 
+//Calculate Log variance matrix
+
+mat logVar(mat X) {
+	cout << "Calculate logvar" << endl;
+	//Sleep(2000);
+	mat log_variance = log10(var(X, 0, 1));
+	//cout << log_variance(0, 0) << endl;
+	return sum(log_variance);
+}
+
 //Claculates Feature Matrix for a given raw data matrix
 mat calculateFeatures(mat raw_data, int num_windows, int win_size, int win_disp, int fs) {
 	mat ll_mat;
 	mat area_mat;
+	mat log_var;
 	ll_mat.zeros(num_windows,8);
 	area_mat.zeros(num_windows, 8);
+	log_var.zeros(num_windows, 1);
 
 
 	for (int i = 1; i <= num_windows; ++i) {
@@ -202,24 +214,16 @@ mat calculateFeatures(mat raw_data, int num_windows, int win_size, int win_disp,
 		mat clip = raw_data.rows(p-1,q-1);
 		ll_mat.row(i-1) = lineLength(clip);
 		area_mat.row(i-1) = area(clip);
+		log_var.row(i - 1) = logVar(clip);
 	}
 	//add elements horizontally:
 	colvec ll_vec = sum(ll_mat, 1);
 	colvec area_vec = sum(area_mat, 1);
-
-	//normalize features:
-	//double ll_mean = mean(ll_vec);
-	//double ll_sdev = stddev(ll_vec);
-
-	//double area_mean = mean(area_vec);
-	//double area_sdev = stddev(area_vec);
-
-	//ll_vec = (ll_vec - ll_mean) / ll_sdev;
-	//area_vec = (area_vec - area_mean) / area_sdev;
+	colvec logvar_vec = sum(log_var, 1);
 
 
 	mat feature_mat;
-	feature_mat = join_horiz(ll_vec , area_vec);
+	feature_mat = join_horiz(ll_vec , join_horiz(area_vec,log_var));
 	return feature_mat;
 }
 
@@ -349,24 +353,17 @@ int main(int argc, char** argv)
 			thumbsup_feats.save("thumbsup.dat", raw_ascii);
 
 			state = CLASSIFY;
-			//Extract features per clip
 		  
 
 		}
 			break;
 
+		case TRAIN:
+
+
+
 		case CLASSIFY:
-			//dummy returned gesture
-			int gesture;
-			//Run classification routine:
-
-			//Logistic Regression
-
-			//SVM
-
-			//LDA
-
-			gesture = OK;
+			
 			collector.print();
 			//cout << gesture;
 
