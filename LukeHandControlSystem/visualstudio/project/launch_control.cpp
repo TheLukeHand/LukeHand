@@ -26,6 +26,7 @@ using namespace std;
 #include <opencv2\ml\ml.hpp>
 #include <armadillo>
 using namespace cv;
+
 using namespace arma;
 
 //Define States.
@@ -54,11 +55,11 @@ using namespace arma;
 
 
 //Set Parameters for the training data
-const int num_classes = 5;
-const int FS = 200;
+int num_classes = 5;
+int FS = 200;
+int WIN_SIZE = 500;
 
-typedef std::vector<int> stdvec;
-
+//typedef std::vector<int> stdvec;
 
 class DataCollector : public myo::DeviceListener {
 public:
@@ -134,6 +135,36 @@ public:
 };
 
 //Helper functions
+typedef std::vector<double> stdvec;
+typedef std::vector< std::vector<double> > stdvecvec;
+
+stdvecvec mat2StdVec(arma::mat &A) {
+	stdvecvec V(A.n_rows);
+	for (size_t i = 0; i < A.n_rows; ++i) {
+		V[i] = arma::conv_to< stdvec >::from(A.row(i));
+	};
+	return V;
+}
+
+double** vec2Array2D(vector<vector<double> > &vals, double N, double M){
+	double** temp;
+	temp = new double*[N];
+	for (unsigned i = 0; (i < N); i++)
+	{
+		temp[i] = new double[M];
+		for (unsigned j = 0; (j < M); j++)
+		{
+			temp[i][j] = vals[i][j];
+		}
+	}
+	return temp;
+}
+
+double* vec2Array(stdvec v) {
+	//double *array = &v[0];
+	return &v[0];
+}
+
 
 vector<int> createVector(int startval, int stepval, int endval) {
 	vector<int> result;
@@ -189,7 +220,7 @@ mat area(mat X) {
 //Calculate Log variance matrix
 
 mat logVar(mat X) {
-	cout << "Calculate logvar" << endl;
+	//cout << "Calculate logvar" << endl;
 	//Sleep(2000);
 	mat log_variance = log10(var(X, 0, 1));
 	//cout << log_variance(0, 0) << endl;
@@ -260,10 +291,165 @@ int main(int argc, char** argv)
     // Hub::addListener() takes the address of any object whose class inherits from DeviceListener, and will cause
     // Hub::run() to send events to all registered device listeners.
     hub.addListener(&collector);
-	
 	// Finally we enter our main loop.
 	vector<string> gestures = {"rest","fist","wavein","waveout","thumbsup"};
+
+	////////////////////////////// Moving Feature Extraction Block Here Temporarily/////////////////////
+	mat rest, fist, wavein, waveout, thumbsup;
+	mat rest_feats, fist_feats, wavein_feats, waveout_feats, thumbsup_feats;
+	cout << "Loading Files ..." << endl;
+	rest.load("rest.csv", csv_ascii);
+	fist.load("fist.csv", csv_ascii);
+	wavein.load("wavein.csv", csv_ascii);
+	waveout.load("waveout.csv", csv_ascii);
+	thumbsup.load("thumbsup.csv", csv_ascii);
+	cout << "Cleaning up files ..." << endl;
+	rest = rest.cols(1, 8);
+	fist = fist.cols(1, 8);
+	wavein = wavein.cols(1, 8);
+	waveout = waveout.cols(1, 8);
+	thumbsup = thumbsup.cols(1, 8);
+	cout << "Calculating features ..." << endl;
+	int nrest_wins, nfist_wins, nwaveout_wins, nwavein_wins, nthumbsup_wins;
+	//////////////////    Train Rest ///////////
+	nrest_wins = numWindows(rest, FS, 500, 200);
+	nfist_wins = numWindows(fist, FS, 500, 200);
+	nwavein_wins = numWindows(wavein, FS, 500, 200);
+	nwaveout_wins = numWindows(waveout, FS, 500, 200);
+	nthumbsup_wins = numWindows(thumbsup, FS, 500, 200);
+	rest_feats = calculateFeatures(rest, nrest_wins, 500, 200, FS);
+	fist_feats = calculateFeatures(fist, nfist_wins, 500, 200, FS);
+	wavein_feats = calculateFeatures(wavein, nwavein_wins, 500, 200, FS);
+	waveout_feats = calculateFeatures(waveout, nwaveout_wins, 500, 200, FS);
+	thumbsup_feats = calculateFeatures(thumbsup, nthumbsup_wins, 500, 200, FS);
+	cout << "Done calculating" << endl;
+	cout << "saving" << endl;
+	rest_feats.save("rest.dat", raw_ascii);
+	fist_feats.save("fist.dat", raw_ascii);
+	wavein_feats.save("wavein.dat", raw_ascii);
+	waveout_feats.save("waveout.dat", raw_ascii);
+	thumbsup_feats.save("thumbsup.dat", raw_ascii);
+    //create training set:
+	mat rest_train, fist_train, waveout_train, wavein_train, thumbsup_train;
+	mat rest_test, fist_test, waveout_test, wavein_test, thumbsup_test;
+	mat rest_trainlabels, fist_trainlabels, waveout_trainlabels, wavein_trainlabels, thumbsup_trainlabels;
+	mat rest_testlabels, fist_testlabels, waveout_testlabels, wavein_testlabels, thumbsup_testlabels;
+
+	rest_train = rest_feats.rows(0, floor(nrest_wins * 7/ 10));
+	rest_test = rest_feats.rows(floor(nrest_wins * 7 / 10)+1, nrest_wins-1);
+	rest_trainlabels.ones(floor(nrest_wins * 7 / 10) + 1, 1);
+	rest_testlabels.ones(nrest_wins - floor(nrest_wins * 7 / 10) - 1, 1);
+	rest_trainlabels = rest_trainlabels * REST;
+	rest_testlabels = rest_testlabels * REST;
+	//rest_trainlabels.save("rlabels.dat", raw_ascii);
+	//rest_testlabels.save("rtlabels.dat", raw_ascii);
+
+	fist_train = fist_feats.rows(0, floor(nfist_wins * 7 / 10));
+	fist_test = fist_feats.rows(floor(nfist_wins * 7 / 10) + 1, nfist_wins - 1);
+	fist_trainlabels.ones(floor(nfist_wins * 7 / 10) + 1, 1);
+	fist_testlabels.ones(nfist_wins - floor(nfist_wins * 7 / 10) - 1, 1);
+	fist_trainlabels = fist_trainlabels * FIST;
+	fist_testlabels = fist_testlabels * FIST;
+
+	wavein_train = wavein_feats.rows(0, floor(nwavein_wins * 7 / 10));
+	wavein_test = wavein_feats.rows(floor(nwavein_wins * 7 / 10) + 1, nwavein_wins - 1);
+	wavein_trainlabels.ones(floor(nwavein_wins * 7 / 10) + 1, 1);
+	wavein_testlabels.ones(nwavein_wins - floor(nwavein_wins * 7 / 10) - 1, 1);
+	wavein_trainlabels = wavein_trainlabels * WAVE_IN;
+	wavein_testlabels = wavein_testlabels * WAVE_IN;
+
+	waveout_train = waveout_feats.rows(0, floor(nwaveout_wins * 7 / 10));
+	waveout_test = waveout_feats.rows(floor(nwaveout_wins * 7 / 10) + 1, nwaveout_wins - 1);
+	waveout_trainlabels.ones(floor(nwaveout_wins * 7 / 10) + 1, 1);
+	waveout_testlabels.ones(nwaveout_wins - floor(nwaveout_wins * 7 / 10) - 1, 1);
+	waveout_trainlabels = waveout_trainlabels * WAVE_OUT;
+	waveout_testlabels = waveout_testlabels * WAVE_OUT;
+
+	thumbsup_train = thumbsup_feats.rows(0, floor(nthumbsup_wins * 7 / 10));
+	thumbsup_test = thumbsup_feats.rows(floor(nthumbsup_wins * 7 / 10) + 1, nthumbsup_wins - 1);
+	thumbsup_trainlabels.ones(floor(nthumbsup_wins * 7 / 10) + 1, 1);
+	thumbsup_testlabels.ones(nthumbsup_wins - floor(nthumbsup_wins * 7 / 10) - 1, 1);
+	thumbsup_trainlabels = thumbsup_trainlabels * THUMBS_UP;
+	thumbsup_testlabels = thumbsup_testlabels * THUMBS_UP;
+
+	//Create single training matrix
+	mat trainmat;
+	mat testmat;
+	trainmat = join_vert(rest_train,join_vert(fist_train,join_vert(wavein_train,join_vert(waveout_train, thumbsup_train))));
+	testmat = join_vert(rest_test, join_vert(fist_test, join_vert(wavein_test, join_vert(waveout_test, thumbsup_test))));
+
+	mat trainlabels;
+	mat testlabels;
+	trainlabels = join_vert(rest_trainlabels,join_vert(fist_trainlabels,join_vert(wavein_trainlabels,join_vert(waveout_trainlabels, thumbsup_trainlabels))));
+	testlabels = join_vert(rest_testlabels, join_vert(fist_testlabels, join_vert(wavein_testlabels, join_vert(waveout_testlabels, thumbsup_testlabels))));
+
+	rowvec trainlabels_vec = vectorise(trainlabels,1);
+	rowvec testlabels_vec = vectorise(testlabels,1);
+
+	stdvecvec trainmat_vec, testmat_vec;
+	double** trainmat_array;
+	double** testmat_array;
+	trainmat_vec = mat2StdVec(trainmat);
+	testmat_vec = mat2StdVec(testmat);
+	trainmat_array = vec2Array2D(trainmat_vec, trainmat.n_rows, trainmat.n_cols);
+	testmat_array = vec2Array2D(testmat_vec, testmat.n_rows, testmat.n_cols);
+	//cout << trainmat_array[0][0] << endl;
+	
+	stdvec trainlabels_std = conv_to< stdvec >::from(trainlabels_vec);
+	stdvec testlabels_std = conv_to< stdvec >::from(testlabels_vec);
+
+	double* trainlabels_array;
+	double* testlabels_array;
+
+	trainlabels_array = &trainlabels_std[0]; //vec2Array(trainlabels_std);
+	testlabels_array = &testlabels_std[0];   //vec2Array(testlabels_std);
+
+	//cout << trainlabels_std[25] << endl;
+	//cout << "LABELS" << endl;
+	//cout << trainlabels_array[25] << endl;
+	//cout << testlabels_array[27] << endl;
+	cv::Mat training_data_mat(trainmat.n_rows, trainmat.n_cols, CV_32FC1, trainmat_array);
+	cv::Mat training_data_labels(trainlabels.n_rows, 1, CV_32FC1, trainlabels_array);
+
+	cv::Mat test_data_mat(testmat.n_rows, testmat.n_cols, CV_32FC1, testmat_array);
+	cv::Mat test_data_labels(testlabels.n_rows, 1, CV_32FC1, testlabels_array);
+	//Setup SVM Parameters
+
+	CvSVMParams params;
+	params.svm_type = CvSVM::C_SVC;
+	params.kernel_type = CvSVM::LINEAR;
+	params.term_crit = cvTermCriteria(CV_TERMCRIT_ITER, 100, 1e-6);
+
+	//Train SVM
+	CvSVM SVM;
+	cout << "here" << endl;
+
+	//SVM.train(training_data_mat, training_data_labels, cv::Mat(), cv::Mat(), params);
+
+
+
+
+	/*for (int i = 0; i < test_data_mat.rows; ++i) {
+		cv::Mat sample = (Mat_<float>(1, 3) << test_data_mat.row(i));
+		cv::Mat result = SVM.predict(sample);
+		cout << result << endl;
+	}
+	*/
+
+	//////////////////////////// End Feature Extraction /////////////////////////////////
+	/*float labels[4] = { 1.0, -1.0, -1.0, -1.0 };
+	cv::Mat labelsMat(4, 1, CV_32FC1, labels);
+
+	float trainingData[4][2] = { { 501, 10 },{ 255, 10 },{ 501, 255 },{ 10, 501 } };
+	cv::Mat trainingDataMat(4, 2, CV_32FC1, trainingData);
+	cv::Size sz = trainingDataMat.size();
+	cout << sz;*/
 	int state = INIT;
+	int sample_count = 0;
+	//const int sample_values = WIN_SIZE*FS / 1000;
+	const int sample_values = 500 * 200 / 1000; //500ms*200Hz/1000
+	double raw_sample[sample_values][8];
+	stdvecvec buffer;
     while (1) {
         // In each iteration of our main loop, we run the Myo event loop for a set number of milliseconds.
         // In this case, we wish to update our display 50 times a second, so we run for 1000/20 milliseconds.
@@ -290,7 +476,7 @@ int main(int argc, char** argv)
 				state = LOG;
 			}
 			else if(choice == 2) {
-				state = EXTRACT_FEATURES;
+				state = CLASSIFY;
 				//state = DEBUG;
 			}
 			break;
@@ -305,7 +491,7 @@ int main(int argc, char** argv)
 			//collector.print();
 			if (difftime(time(0), tick) >= 5) {
 				//collector.closeFiles();
-				state = INIT;
+				state = CLASSIFY;
 				break;
 			}
 			}
@@ -315,57 +501,22 @@ int main(int argc, char** argv)
 
 			break;
 
-		case EXTRACT_FEATURES: {
-			mat rest, fist, wavein, waveout, thumbsup;
-			mat rest_feats, fist_feats, wavein_feats, waveout_feats, thumbsup_feats;
-			cout << "Loading Files ..." << endl;
-			rest.load("rest.csv", csv_ascii);
-			fist.load("fist.csv", csv_ascii);
-			wavein.load("wavein.csv", csv_ascii);
-			waveout.load("waveout.csv", csv_ascii);
-			thumbsup.load("thumbsup.csv", csv_ascii);
-			cout << "Cleaning up files ..." << endl;
-			rest = rest.cols(1, 8);
-			fist = fist.cols(1, 8);
-			wavein = wavein.cols(1, 8);
-			waveout = waveout.cols(1, 8);
-			thumbsup = thumbsup.cols(1, 8);
-			cout << "Calculating features ..." << endl;
-			int nrest_wins, nfist_wins, nwaveout_wins, nwavein_wins, nthumbsup_wins;
-			//////////////////    Train Rest ///////////
-			nrest_wins = numWindows(rest, FS, 500, 200);
-			nfist_wins = numWindows(fist, FS, 500, 200);
-			nwavein_wins = numWindows(wavein, FS, 500, 200);
-			nwaveout_wins = numWindows(waveout, FS, 500, 200);
-			nthumbsup_wins = numWindows(thumbsup, FS, 500, 200);
-			cout << "Done with windows" << endl;
-			rest_feats = calculateFeatures(rest, nrest_wins, 500, 200, FS);
-			fist_feats = calculateFeatures(fist, nfist_wins, 500, 200, FS);
-			wavein_feats = calculateFeatures(wavein, nwavein_wins, 500, 200, FS);
-		    waveout_feats = calculateFeatures(waveout, nwaveout_wins, 500, 200, FS);
-			thumbsup_feats = calculateFeatures(thumbsup, nthumbsup_wins, 500, 200, FS);
-			cout << "done calculating" << endl;
-			cout << "saving" << endl;
-			rest_feats.save("rest.dat",raw_ascii);
-			fist_feats.save("fist.dat", raw_ascii);
-			wavein_feats.save("wavein.dat", raw_ascii);
-			waveout_feats.save("waveout.dat", raw_ascii);
-			thumbsup_feats.save("thumbsup.dat", raw_ascii);
+		case EXTRACT_FEATURES: 
 
-			state = CLASSIFY;
-		  
-
-		}
+		
 			break;
-
-		case TRAIN:
 
 
 
 		case CLASSIFY:
-			
-			collector.print();
-			//cout << gesture;
+
+			stdvec samples = { collector.emgSamples[0], collector.emgSamples[1], ... }; 
+			buffer.push_back(samples);
+			if (sample_count == sample_values) {
+				mat features = calculateFeatures()
+				cv::Mat test_sample(features);
+				float label = SVM.predict(test_sample);
+			}
 
 			break;
 
