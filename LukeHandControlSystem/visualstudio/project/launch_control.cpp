@@ -400,7 +400,6 @@ int main(int argc, char** argv)
 
 	double* trainlabels_array;
 	double* testlabels_array;
-
 	trainlabels_array = &trainlabels_std[0]; //vec2Array(trainlabels_std);
 	testlabels_array = &testlabels_std[0];   //vec2Array(testlabels_std);
 
@@ -408,34 +407,56 @@ int main(int argc, char** argv)
 	//cout << "LABELS" << endl;
 	//cout << trainlabels_array[25] << endl;
 	//cout << testlabels_array[27] << endl;
-	cout << trainmat_array[1][1] << endl;
-	cout << trainlabels_array[15] << endl;
-	cv::Mat training_data_mat(trainmat.n_rows, trainmat.n_cols, CV_32FC1, trainmat_array);
-	cv::Mat training_data_labels(trainlabels.n_rows, 1, CV_32SC1, trainlabels_array);
+	cout << trainmat_array[0][0] << endl;
+	cout << trainlabels_array[0] << endl;
+	//cv::Mat training_data_mat(trainmat.n_rows, trainmat.n_cols, CV_32FC2, trainmat_array);
+	//cv::Mat training_data_labels(trainlabels.n_rows, 1, CV_32SC1, trainlabels_array);
+	cv::Mat training_data_mat = cv::Mat::zeros(trainmat.n_rows, trainmat.n_cols,CV_32FC1);
+	cv::Mat training_data_labels = cv::Mat::zeros(1, trainmat.n_rows, CV_32FC1);
 
-	cout << "Trainvals: " << training_data_mat.at<float>(0, 0) << endl;
-	cout << "Trainlabels: " << training_data_labels.at<float>(0, 75) << endl;
+	//populate the matrix
+	for (int i = 0; i < trainmat.n_rows;++i) {
+		training_data_labels.at<float>(0, i) = trainlabels(i, 0);
+		for (int j = 0; j < trainmat.n_cols;++j) {
+			training_data_mat.at<float>(i, j) = trainmat(i, j);
+		}
+	}
 
-	cv::Mat test_data_mat(testmat.n_rows, testmat.n_cols, CV_32FC1, testmat_array);
-	cv::Mat test_data_labels(testlabels.n_rows, 1, CV_32SC1, testlabels_array);
+	//Print A few values to check
+	cout << "Trainvals: " << training_data_mat.at<float>(2, 2) << endl;
+	cout << "Trainlabels: " << training_data_labels.at<float>(0, 73) << endl;
+
+	cv::Mat test_data_mat = cv::Mat::zeros(testmat.n_rows, testmat.n_cols, CV_32FC1);
+	cv::Mat test_data_labels = cv::Mat::zeros(1, testmat.n_rows, CV_32FC1);
+	for (int m = 0; m < testmat.n_rows; ++m) {
+		test_data_labels.at<float>(0, m) = testlabels(m, 0);
+		for (int n = 0; n < testmat.n_cols; ++n) {
+			test_data_mat.at<float>(m, n) = testmat(m, n);
+		}
+	}
+
+	//Print out sample values to check if Mat is correct
+	cout << "Testvals: " << test_data_mat.at<float>(2, 2) << endl;
+	cout << "Testlabels: " << test_data_labels.at<float>(0, 20) << endl;
 	//Setup SVM Parameters
 
 	CvSVMParams params;
 	params.svm_type = CvSVM::C_SVC;
-	params.kernel_type = CvSVM::RBF;
+	params.kernel_type = CvSVM::LINEAR;
 	params.term_crit = cvTermCriteria(CV_TERMCRIT_ITER, 100, 1e-6);
 
 	//Train SVM
 	CvSVM SVM;
 	SVM.train(training_data_mat, training_data_labels, cv::Mat(), cv::Mat(), params);
-
+	//
 	
-	for (int i = 0; i < test_data_mat.rows; ++i) {
-		cv::Mat sample = (Mat_<float>(1, 3) << testmat(i,0),testmat(i,1),testmat(i,2));
-		//cout << sample.size() << endl;
+	for (int k = 0; k < test_data_mat.rows; ++k) {
+		cv::Mat sample = (Mat_<float>(1, 3) << testmat(k,0),testmat(k,1),testmat(k,2));
+		//cout << sample.at<float>(0, 1) << endl;
 		//cout << "I'm here" << endl;
-		//float result = SVM.predict(sample);
-		//cout << result << endl;
+		float result = SVM.predict(sample);
+		//Print out the predicted class (number btwn 1&5)
+		cout << result << endl;
 	}
 	
 
