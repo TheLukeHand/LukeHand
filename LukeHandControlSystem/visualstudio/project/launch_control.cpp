@@ -55,9 +55,10 @@ using namespace arma;
 
 
 //Set Parameters for the training data
-int num_classes = 5;
-int FS = 200;
-int WIN_SIZE = 500;
+int num_classes = 5; //Number of gestures to be classified
+int FS = 200; //200Hz sampling frequency (equal to the max frequency of the myo)
+int WIN_SIZE = 500; //500ms window size
+int WIN_DISP = 200; //200ms overlap
 
 //typedef std::vector<int> stdvec;
 
@@ -193,6 +194,18 @@ void printVector(const vector<int>& vec) {
 	}
 }
 
+void printBuffer(std::vector< std::array<double,8> > v, int num_rows) {
+	for (int i = 0; i < num_rows; i++)
+	{
+		for (int j = 0; j < 8; j++)
+		{
+			cout << v[i][j] << "  ";
+		}
+		cout << endl;
+	}
+
+}
+
 int numWindows(const mat& matrix, int fs, int win_size, int win_disp) {
 	int mat_size = matrix.n_rows;
 	int start = 1 + win_size*fs/1000;
@@ -304,26 +317,27 @@ int main(int argc, char** argv)
 	wavein = wavein.cols(1, 8);
 	waveout = waveout.cols(1, 8);
 	thumbsup = thumbsup.cols(1, 8);
-	cout << "Calculating features ..." << endl;
+	cout << "Extracting features ..." << endl;
 	int nrest_wins, nfist_wins, nwaveout_wins, nwavein_wins, nthumbsup_wins;
 	//////////////////    Train Rest ///////////
-	nrest_wins = numWindows(rest, FS, 500, 200);
-	nfist_wins = numWindows(fist, FS, 500, 200);
-	nwavein_wins = numWindows(wavein, FS, 500, 200);
-	nwaveout_wins = numWindows(waveout, FS, 500, 200);
-	nthumbsup_wins = numWindows(thumbsup, FS, 500, 200);
-	rest_feats = calculateFeatures(rest, nrest_wins, 500, 200, FS);
-	fist_feats = calculateFeatures(fist, nfist_wins, 500, 200, FS);
-	wavein_feats = calculateFeatures(wavein, nwavein_wins, 500, 200, FS);
-	waveout_feats = calculateFeatures(waveout, nwaveout_wins, 500, 200, FS);
-	thumbsup_feats = calculateFeatures(thumbsup, nthumbsup_wins, 500, 200, FS);
-	cout << "Done calculating" << endl;
-	cout << "saving" << endl;
+	nrest_wins = numWindows(rest, FS, WIN_SIZE, WIN_DISP);
+	nfist_wins = numWindows(fist, FS, WIN_SIZE, WIN_DISP);
+	nwavein_wins = numWindows(wavein, FS, WIN_SIZE, WIN_DISP);
+	nwaveout_wins = numWindows(waveout, FS, WIN_SIZE, WIN_DISP);
+	nthumbsup_wins = numWindows(thumbsup, FS, WIN_SIZE, WIN_DISP);
+	rest_feats = calculateFeatures(rest, nrest_wins, WIN_SIZE, WIN_DISP, FS);
+	fist_feats = calculateFeatures(fist, nfist_wins, WIN_SIZE, WIN_DISP, FS);
+	wavein_feats = calculateFeatures(wavein, nwavein_wins, WIN_SIZE, WIN_DISP, FS);
+	waveout_feats = calculateFeatures(waveout, nwaveout_wins, WIN_SIZE, WIN_DISP, FS);
+	thumbsup_feats = calculateFeatures(thumbsup, nthumbsup_wins, WIN_SIZE, WIN_DISP, FS);
+	cout << "Feature Extraction Complete" << endl;
+	cout << "Saving Feature logs... " << endl;
 	rest_feats.save("rest.dat", raw_ascii);
 	fist_feats.save("fist.dat", raw_ascii);
 	wavein_feats.save("wavein.dat", raw_ascii);
 	waveout_feats.save("waveout.dat", raw_ascii);
 	thumbsup_feats.save("thumbsup.dat", raw_ascii);
+	cout << "Done!" << endl;
     //create training set:
 	mat rest_train, fist_train, waveout_train, wavein_train, thumbsup_train;
 	mat rest_test, fist_test, waveout_test, wavein_test, thumbsup_test;
@@ -388,7 +402,6 @@ int main(int argc, char** argv)
 	testmat_vec = mat2StdVec(testmat);
 	trainmat_array = vec2Array2D(trainmat_vec, trainmat.n_rows, trainmat.n_cols);
 	testmat_array = vec2Array2D(testmat_vec, testmat.n_rows, testmat.n_cols);
-	//cout << trainmat_array[0][0] << endl;
 	
 	stdvec trainlabels_std = conv_to< stdvec >::from(trainlabels_vec);
 	stdvec testlabels_std = conv_to< stdvec >::from(testlabels_vec);
@@ -403,8 +416,7 @@ int main(int argc, char** argv)
 	//cout << "LABELS" << endl;
 	//cout << trainlabels_array[25] << endl;
 	//cout << testlabels_array[27] << endl;
-	cout << trainmat_array[0][0] << endl;
-	cout << trainlabels_array[0] << endl;
+
 	//cv::Mat training_data_mat(trainmat.n_rows, trainmat.n_cols, CV_32FC2, trainmat_array);
 	//cv::Mat training_data_labels(trainlabels.n_rows, 1, CV_32SC1, trainlabels_array);
 	cv::Mat training_data_mat = cv::Mat::zeros(trainmat.n_rows, trainmat.n_cols,CV_32FC1);
@@ -419,8 +431,8 @@ int main(int argc, char** argv)
 	}
 
 	//Print A few values to check
-	cout << "Trainvals: " << training_data_mat.at<float>(2, 2) << endl;
-	cout << "Trainlabels: " << training_data_labels.at<float>(0, 73) << endl;
+	//cout << "Trainvals: " << training_data_mat.at<float>(2, 2) << endl;
+	//cout << "Trainlabels: " << training_data_labels.at<float>(0, 73) << endl;
 
 	cv::Mat test_data_mat = cv::Mat::zeros(testmat.n_rows, testmat.n_cols, CV_32FC1);
 	cv::Mat test_data_labels = cv::Mat::zeros(1, testmat.n_rows, CV_32FC1);
@@ -432,121 +444,60 @@ int main(int argc, char** argv)
 	}
 
 	//Print out sample values to check if Mat is correct
-	cout << "Testvals: " << test_data_mat.at<float>(2, 2) << endl;
-	cout << "Testlabels: " << test_data_labels.at<float>(0, 20) << endl;
+	//cout << "Testvals: " << test_data_mat.at<float>(2, 2) << endl;
+	//cout << "Testlabels: " << test_data_labels.at<float>(0, 20) << endl;
 	//Setup SVM Parameters
 
+	cout << "Creating SVM Parameters... " << endl;
 	CvSVMParams params;
 	params.svm_type = CvSVM::C_SVC;
 	params.kernel_type = CvSVM::LINEAR;
 	params.term_crit = cvTermCriteria(CV_TERMCRIT_ITER, 100, 1e-6);
-
+	cout << "Training Model... " << endl;
 	//Train SVM
 	CvSVM SVM;
 	SVM.train(training_data_mat, training_data_labels, cv::Mat(), cv::Mat(), params);
 	//
-	
+	cout << "Model Generated" << endl << "Validating Model on test set ... " << endl;
 	for (int k = 0; k < test_data_mat.rows; ++k) {
 		cv::Mat sample = (Mat_<float>(1, 3) << testmat(k,0),testmat(k,1),testmat(k,2));
 		//cout << sample.at<float>(0, 1) << endl;
 		//cout << "I'm here" << endl;
 		float result = SVM.predict(sample);
 		//Print out the predicted class (number btwn 1&5)
-		cout << result << endl;
+		//cout << result << endl;
 	}
 	
-
-	//////////////////////////// End Feature Extraction /////////////////////////////////
+	cout << "Model Validated, accuracy = " << endl;
+	//////////////////////////// End Feature Extraction  and Training /////////////////////////////////
 
 	int state = INIT;
 	int sample_count = 0;
-	//const int sample_values = WIN_SIZE*FS / 1000;
-	const int sample_values = 500 * 200 / 1000; //500ms*200Hz/1000
-	double raw_sample[sample_values][8];
-	stdvecvec buffer;
+	int num_sample_values = WIN_SIZE * FS / 1000; //500ms*200Hz/1000
+	int overlap_values = WIN_DISP * FS / 1000; //200ms*200Hz/1000
+	//std::vector< std::array<double, 8> > std_buffer; //initialize 2D vector of raw values (NX8)
+	//std_buffer.reserve(360000);   // N = 200Hz * 60s/min * 30min = 360000;  Enough for 30 minutes
+	mat buffer;
+	buffer.zeros(FS * 60 * 30,8);   //Initialize buffer matrix with zeros
+	int num_attempts = 0;
     while (1) {
-        // In each iteration of our main loop, we run the Myo event loop for a set number of milliseconds.
-        // In this case, we wish to update our display 50 times a second, so we run for 1000/20 milliseconds.
+
         hub.run(1000/FS);
-        // After processing events, we call the print() member function we defined above to print out the values we've
-        // obtained from any events that have occurred.
-		switch (state) { //Begine State Machine
 
-		case INIT:
-			cout << "What would you like to do?" << endl;
-			cout << "1: Log Gesture Data" << endl << "2: Predict Gestures" << endl;
-			cout << "Input: " << endl;
-			int choice;
-			cin >> choice;
-			int gesture_type;
-			if (choice == 1) {
-				cout << "Enter the gesture you want to log" << endl;
-				int i;
-				i = 0;
-				for (i = 0; i < gestures.size(); i++) {
-					cout << i + 1 << ": " << gestures[i] << endl;
-				}
-				cin >> gesture_type;
-				state = LOG;
+			//buffer.push_back({(double)collector.emgSamples[0], (double)collector.emgSamples[1], (double)collector.emgSamples[2], (double)collector.emgSamples[3], (double)collector.emgSamples[4], (double)collector.emgSamples[5], (double)collector.emgSamples[6], (double)collector.emgSamples[7] });
+			//Collect Sample
+			mat sample;
+			sample << (double)collector.emgSamples[0] << (double)collector.emgSamples[1] << (double)collector.emgSamples[2] << (double)collector.emgSamples[3] << (double)collector.emgSamples[4] << (double)collector.emgSamples[5] << (double)collector.emgSamples[6] << (double)collector.emgSamples[7];
+			//Add Sample to Buffer
+			buffer.row(sample_count) = sample;
+			sample_count++;
+			//Wait for enough samples to be collected (i.e 200Hz * 500ms = 100 samples) to start gesture recognition
+			if (sample_count >= num_sample_values + num_attempts*overlap_values) {
+				mat raw_window = buffer.rows(num_attempts * overlap_values, num_attempts * overlap_values+num_sample_values);
+				
+				num_attempts++;
 			}
-			else if(choice == 2) {
-				state = CLASSIFY;
-				//state = DEBUG;
-			}
-			break;
-		case DEBUG:
 
-			break;
-		case LOG:
-			time_t tick;
-			tick = time(0);
-			collector.openFiles(gestures[gesture_type-1]);
-			while(difftime(time(0),tick) < 5){
-			//collector.print();
-			if (difftime(time(0), tick) >= 5) {
-				//collector.closeFiles();
-				state = CLASSIFY;
-				break;
-			}
-			}
-			break;
-
-		case FILTER:
-
-			break;
-
-		case EXTRACT_FEATURES: 
-
-		
-			break;
-
-
-
-		case CLASSIFY:
-			/*
-			stdvec samples = { collector.emgSamples[0], collector.emgSamples[1], ... }; 
-			buffer.push_back(samples);
-			if (sample_count == sample_values) {
-				mat features = calculateFeatures()
-				cv::Mat test_sample(features);
-				float label = SVM.predict(test_sample);
-
-				//
-				if (label == REST) {
-					gesture = REST;
-				}else if(label == FIST)
-					gesture = FIST
-					+
-			}
-			*/
-			break;
-
-		case SEND2SOCKET:
-
-			break;
-
-
-		} //End state Machine
 			
     }
 
