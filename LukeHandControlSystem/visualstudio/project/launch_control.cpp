@@ -408,42 +408,39 @@ int main(int argc, char** argv)
 	//cout << "LABELS" << endl;
 	//cout << trainlabels_array[25] << endl;
 	//cout << testlabels_array[27] << endl;
+	cout << trainmat_array[1][1] << endl;
+	cout << trainlabels_array[15] << endl;
 	cv::Mat training_data_mat(trainmat.n_rows, trainmat.n_cols, CV_32FC1, trainmat_array);
-	cv::Mat training_data_labels(trainlabels.n_rows, 1, CV_32FC1, trainlabels_array);
+	cv::Mat training_data_labels(trainlabels.n_rows, 1, CV_32SC1, trainlabels_array);
+
+	cout << "Trainvals: " << training_data_mat.at<float>(0, 0) << endl;
+	cout << "Trainlabels: " << training_data_labels.at<float>(0, 75) << endl;
 
 	cv::Mat test_data_mat(testmat.n_rows, testmat.n_cols, CV_32FC1, testmat_array);
-	cv::Mat test_data_labels(testlabels.n_rows, 1, CV_32FC1, testlabels_array);
+	cv::Mat test_data_labels(testlabels.n_rows, 1, CV_32SC1, testlabels_array);
 	//Setup SVM Parameters
 
 	CvSVMParams params;
 	params.svm_type = CvSVM::C_SVC;
-	params.kernel_type = CvSVM::LINEAR;
+	params.kernel_type = CvSVM::RBF;
 	params.term_crit = cvTermCriteria(CV_TERMCRIT_ITER, 100, 1e-6);
 
 	//Train SVM
 	CvSVM SVM;
-	cout << "here" << endl;
+	SVM.train(training_data_mat, training_data_labels, cv::Mat(), cv::Mat(), params);
 
-	//SVM.train(training_data_mat, training_data_labels, cv::Mat(), cv::Mat(), params);
-
-
-
-
-	/*for (int i = 0; i < test_data_mat.rows; ++i) {
-		cv::Mat sample = (Mat_<float>(1, 3) << test_data_mat.row(i));
-		cv::Mat result = SVM.predict(sample);
-		cout << result << endl;
+	
+	for (int i = 0; i < test_data_mat.rows; ++i) {
+		cv::Mat sample = (Mat_<float>(1, 3) << testmat(i,0),testmat(i,1),testmat(i,2));
+		//cout << sample.size() << endl;
+		//cout << "I'm here" << endl;
+		//float result = SVM.predict(sample);
+		//cout << result << endl;
 	}
-	*/
+	
 
 	//////////////////////////// End Feature Extraction /////////////////////////////////
-	/*float labels[4] = { 1.0, -1.0, -1.0, -1.0 };
-	cv::Mat labelsMat(4, 1, CV_32FC1, labels);
 
-	float trainingData[4][2] = { { 501, 10 },{ 255, 10 },{ 501, 255 },{ 10, 501 } };
-	cv::Mat trainingDataMat(4, 2, CV_32FC1, trainingData);
-	cv::Size sz = trainingDataMat.size();
-	cout << sz;*/
 	int state = INIT;
 	int sample_count = 0;
 	//const int sample_values = WIN_SIZE*FS / 1000;
@@ -509,15 +506,22 @@ int main(int argc, char** argv)
 
 
 		case CLASSIFY:
-
+			/*
 			stdvec samples = { collector.emgSamples[0], collector.emgSamples[1], ... }; 
 			buffer.push_back(samples);
 			if (sample_count == sample_values) {
 				mat features = calculateFeatures()
 				cv::Mat test_sample(features);
 				float label = SVM.predict(test_sample);
-			}
 
+				//
+				if (label == REST) {
+					gesture = REST;
+				}else if(label == FIST)
+					gesture = FIST
+					+
+			}
+			*/
 			break;
 
 		case SEND2SOCKET:
