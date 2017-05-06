@@ -69,7 +69,7 @@ public:
 		//openFiles();
     }
 
-	void openFiles(string name) {
+	void openFiles(const string& name) {
 		time_t timestamp = std::time(0);
 
 		// Open file for EMG log
@@ -91,7 +91,6 @@ public:
     // If Myo is disconnected, start 
     void onUnpair(myo::Myo* myo, uint64_t timestamp)
     {
-
         emgSamples.fill(0);
     }
     // onEmgData() is called whenever a paired Myo has provided new EMG data, and EMG streaming is enabled.
@@ -138,7 +137,7 @@ public:
 typedef std::vector<double> stdvec;
 typedef std::vector< std::vector<double> > stdvecvec;
 
-stdvecvec mat2StdVec(arma::mat &A) {
+stdvecvec mat2StdVec(const arma::mat &A) {
 	stdvecvec V(A.n_rows);
 	for (size_t i = 0; i < A.n_rows; ++i) {
 		V[i] = arma::conv_to< stdvec >::from(A.row(i));
@@ -146,7 +145,7 @@ stdvecvec mat2StdVec(arma::mat &A) {
 	return V;
 }
 
-double** vec2Array2D(vector<vector<double> > &vals, double N, double M){
+double** vec2Array2D(const vector<vector<double> > &vals, double N, double M){
 	double** temp;
 	temp = new double*[N];
 	for (unsigned i = 0; (i < N); i++)
@@ -160,7 +159,7 @@ double** vec2Array2D(vector<vector<double> > &vals, double N, double M){
 	return temp;
 }
 
-double* vec2Array(stdvec v) {
+double* vec2Array(stdvec& v) {
 	//double *array = &v[0];
 	return &v[0];
 }
@@ -174,7 +173,7 @@ vector<int> createVector(int startval, int stepval, int endval) {
 	}
 	return result;
 }
-int calculateNumWindows(vector<int> window, int sampling_freq, int win_length, int win_disp) {
+int calculateNumWindows(const vector<int>& window, int sampling_freq, int win_length, int win_disp) {
 	int num_windows = 0;
 	int start = 1 + win_length*sampling_freq;
 	int step = win_disp*sampling_freq;
@@ -188,13 +187,13 @@ int calculateNumWindows(vector<int> window, int sampling_freq, int win_length, i
 	return num_windows;
 }
 
-void printVector(vector<int> vec) {
+void printVector(const vector<int>& vec) {
 	for (int i = 0; i < vec.size(); ++i) {
 		cout << vec[i] << endl;
 	}
 }
 
-int numWindows(mat matrix, int fs, int win_size, int win_disp) {
+int numWindows(const mat& matrix, int fs, int win_size, int win_disp) {
 	int mat_size = matrix.n_rows;
 	int start = 1 + win_size*fs/1000;
 	int step = win_disp*fs/1000;
@@ -207,19 +206,19 @@ int numWindows(mat matrix, int fs, int win_size, int win_disp) {
 }
 
 //Calculate Line length feature of a matrix given a raw data matrixe
-mat lineLength(mat X) {
+mat lineLength(const mat& X) {
 	return sum(abs(diff(X)));
 
 }
 
 //Calculate Area Feature Matrix given raw data
-mat area(mat X) {
+mat area(const mat& X) {
 	return sum(abs(X));
 }
 
 //Calculate Log variance matrix
 
-mat logVar(mat X) {
+mat logVar(const mat& X) {
 	//cout << "Calculate logvar" << endl;
 	//Sleep(2000);
 	mat log_variance = log10(var(X, 0, 1));
@@ -228,7 +227,7 @@ mat logVar(mat X) {
 }
 
 //Claculates Feature Matrix for a given raw data matrix
-mat calculateFeatures(mat raw_data, int num_windows, int win_size, int win_disp, int fs) {
+mat calculateFeatures(const mat& raw_data, int num_windows, int win_size, int win_disp, int fs) {
 	mat ll_mat;
 	mat area_mat;
 	mat log_var;
@@ -257,10 +256,6 @@ mat calculateFeatures(mat raw_data, int num_windows, int win_size, int win_disp,
 	feature_mat = join_horiz(ll_vec , join_horiz(area_vec,log_var));
 	return feature_mat;
 }
-
-
-
-
 
 int main(int argc, char** argv)
 {
@@ -400,6 +395,7 @@ int main(int argc, char** argv)
 
 	double* trainlabels_array;
 	double* testlabels_array;
+
 	trainlabels_array = &trainlabels_std[0]; //vec2Array(trainlabels_std);
 	testlabels_array = &testlabels_std[0];   //vec2Array(testlabels_std);
 
