@@ -270,6 +270,38 @@ mat calculateFeatures(const mat& raw_data, int num_windows, int win_size, int wi
 	return feature_mat;
 }
 
+cv::Mat arma2CV(mat arma_mat) {
+	cv::Mat cv_mat = cv::Mat::zeros(arma_mat.n_rows, arma_mat.n_cols, CV_32FC1);
+		for (int i = 0; i < arma_mat.n_rows;++i) {
+			for (int j = 0; j < arma_mat.n_cols;++j) {
+			cv_mat.at<float>(i, j) = arma_mat(i, j);
+		}
+	}
+		return cv_mat;
+}
+
+void printGesture(float gesture) {
+	if (gesture == 1) {
+		cout << "Rest " << endl;
+	}
+	else if (gesture == 2) {
+		cout << "Fist" << endl;
+	}
+	else if (gesture == 3) {
+		cout << "Wave In" << endl;
+	}
+	else if (gesture == 4) {
+		cout << "Wave Out" << endl;
+	}
+	else if (gesture == 5) {
+		cout << "Thumbs Up" << endl;
+	}
+	else {
+		cout << "GARBAGE :( Fix Me" << endl;
+	}
+
+}
+
 int main(int argc, char** argv)
 {
     // We catch any exceptions that might occur below -- see the catch statement for more details.
@@ -282,7 +314,6 @@ int main(int argc, char** argv)
     std::cout << "Attempting to find a Myo..." << std::endl;
 
     myo::Myo* myo = hub.waitForMyo(10000);
-
     // If waitForMyo() returned a null pointer, we failed to find a Myo, so exit with an error message.
     if (!myo) {
         throw std::runtime_error("Unable to find a Myo!");
@@ -331,6 +362,7 @@ int main(int argc, char** argv)
 	waveout_feats = calculateFeatures(waveout, nwaveout_wins, WIN_SIZE, WIN_DISP, FS);
 	thumbsup_feats = calculateFeatures(thumbsup, nthumbsup_wins, WIN_SIZE, WIN_DISP, FS);
 	cout << "Feature Extraction Complete" << endl;
+	/*
 	cout << "Saving Feature logs... " << endl;
 	rest_feats.save("rest.dat", raw_ascii);
 	fist_feats.save("fist.dat", raw_ascii);
@@ -338,6 +370,7 @@ int main(int argc, char** argv)
 	waveout_feats.save("waveout.dat", raw_ascii);
 	thumbsup_feats.save("thumbsup.dat", raw_ascii);
 	cout << "Done!" << endl;
+	*/
     //create training set:
 	mat rest_train, fist_train, waveout_train, wavein_train, thumbsup_train;
 	mat rest_test, fist_test, waveout_test, wavein_test, thumbsup_test;
@@ -494,8 +527,16 @@ int main(int argc, char** argv)
 			//Wait for enough samples to be collected (i.e 200Hz * 500ms = 100 samples) to start gesture recognition
 			if (sample_count >= num_sample_values + num_attempts*overlap_values) {
 				mat raw_window = buffer.rows(num_attempts * overlap_values, num_attempts * overlap_values+num_sample_values);
-				
+				mat features = calculateFeatures(raw_window, 1, WIN_SIZE, WIN_DISP, FS);
+				//Initialize Feature Matrix
+				//Populate Feature Matrix:
+				cv::Mat test_features = arma2CV(features);
+				//cout << test_features.at<float>(0, 0) << "  " << test_features.at<float>(0, 1) << "  " << test_features.at<float>(0, 2) << endl;
+				//Perform the prediction
+				float gesture = SVM.predict(test_features);
+				printGesture(gesture);
 				num_attempts++;
+				cout << "Attempts made: " << num_attempts << endl;
 			}
 
 			

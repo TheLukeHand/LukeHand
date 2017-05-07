@@ -1,14 +1,39 @@
-﻿C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V140\Microsoft.CppBuild.targets(392,5): warning MSB8028: The intermediate directory (Debug\) contains files shared from another project (Control.vcxproj).  This can lead to incorrect clean and rebuild behavior.
-  launch_control.cpp
+﻿  launch_control.cpp
 c:\users\mushont\source\repos\smartbionics\lukehandcontrolsystem\visualstudio\include\myo\cxx\impl\../detail/ThrowOnError.hpp(39): warning C4297: 'myo::ThrowOnError::~ThrowOnError': function assumed not to throw an exception but does
   c:\users\mushont\source\repos\smartbionics\lukehandcontrolsystem\visualstudio\include\myo\cxx\impl\../detail/ThrowOnError.hpp(39): note: destructor or deallocator has a (possibly implicit) non-throwing exception specification
 c:\users\mushont\source\repos\smartbionics\lukehandcontrolsystem\visualstudio\include\myo\cxx\impl\../detail/ThrowOnError.hpp(45): warning C4297: 'myo::ThrowOnError::~ThrowOnError': function assumed not to throw an exception but does
   c:\users\mushont\source\repos\smartbionics\lukehandcontrolsystem\visualstudio\include\myo\cxx\impl\../detail/ThrowOnError.hpp(45): note: destructor or deallocator has a (possibly implicit) non-throwing exception specification
-launch_control.cpp(147): warning C4018: '<': signed/unsigned mismatch
-launch_control.cpp(148): warning C4018: '<=': signed/unsigned mismatch
-launch_control.cpp(156): warning C4018: '<': signed/unsigned mismatch
-launch_control.cpp(215): warning C4018: '<': signed/unsigned mismatch
-launch_control.cpp(227): warning C4101: 'tock': unreferenced local variable
-  Control-System.vcxproj -> C:\Users\mushont\Source\Repos\SmartBionics\LukeHandControlSystem\visualstudio\project\Debug\Control-System.exe
-  Control-System.vcxproj -> C:\Users\mushont\Source\Repos\SmartBionics\LukeHandControlSystem\visualstudio\project\Debug\Control-System.pdb (Full PDB)
-          1 file(s) copied.
+launch_control.cpp(151): warning C4244: 'initializing': conversion from 'double' to 'unsigned int', possible loss of data
+launch_control.cpp(154): warning C4244: 'initializing': conversion from 'double' to 'unsigned int', possible loss of data
+launch_control.cpp(183): warning C4018: '<': signed/unsigned mismatch
+launch_control.cpp(184): warning C4018: '<=': signed/unsigned mismatch
+launch_control.cpp(192): warning C4018: '<': signed/unsigned mismatch
+launch_control.cpp(347): warning C4244: 'argument': conversion from 'double' to 'const arma::uword', possible loss of data
+launch_control.cpp(348): warning C4244: 'argument': conversion from 'double' to 'const arma::uword', possible loss of data
+launch_control.cpp(349): warning C4244: 'argument': conversion from 'double' to 'const arma::uword', possible loss of data
+launch_control.cpp(350): warning C4244: 'argument': conversion from 'double' to 'const arma::uword', possible loss of data
+launch_control.cpp(356): warning C4244: 'argument': conversion from 'double' to 'const arma::uword', possible loss of data
+launch_control.cpp(357): warning C4244: 'argument': conversion from 'double' to 'const arma::uword', possible loss of data
+launch_control.cpp(358): warning C4244: 'argument': conversion from 'double' to 'const arma::uword', possible loss of data
+launch_control.cpp(359): warning C4244: 'argument': conversion from 'double' to 'const arma::uword', possible loss of data
+launch_control.cpp(363): warning C4244: 'argument': conversion from 'double' to 'const arma::uword', possible loss of data
+launch_control.cpp(364): warning C4244: 'argument': conversion from 'double' to 'const arma::uword', possible loss of data
+launch_control.cpp(365): warning C4244: 'argument': conversion from 'double' to 'const arma::uword', possible loss of data
+launch_control.cpp(366): warning C4244: 'argument': conversion from 'double' to 'const arma::uword', possible loss of data
+launch_control.cpp(370): warning C4244: 'argument': conversion from 'double' to 'const arma::uword', possible loss of data
+launch_control.cpp(371): warning C4244: 'argument': conversion from 'double' to 'const arma::uword', possible loss of data
+launch_control.cpp(372): warning C4244: 'argument': conversion from 'double' to 'const arma::uword', possible loss of data
+launch_control.cpp(373): warning C4244: 'argument': conversion from 'double' to 'const arma::uword', possible loss of data
+launch_control.cpp(377): warning C4244: 'argument': conversion from 'double' to 'const arma::uword', possible loss of data
+launch_control.cpp(378): warning C4244: 'argument': conversion from 'double' to 'const arma::uword', possible loss of data
+launch_control.cpp(379): warning C4244: 'argument': conversion from 'double' to 'const arma::uword', possible loss of data
+launch_control.cpp(380): warning C4244: 'argument': conversion from 'double' to 'const arma::uword', possible loss of data
+launch_control.cpp(426): warning C4018: '<': signed/unsigned mismatch
+launch_control.cpp(427): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+launch_control.cpp(428): warning C4018: '<': signed/unsigned mismatch
+launch_control.cpp(429): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+launch_control.cpp(439): warning C4018: '<': signed/unsigned mismatch
+launch_control.cpp(440): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+launch_control.cpp(441): warning C4018: '<': signed/unsigned mismatch
+launch_control.cpp(442): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+LINK : fatal error LNK1104: cannot open file 'opencv_world320d.lib'
