@@ -1,0 +1,22 @@
+# Based on https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
+
+# User-specific files
+*.suo
+*.user
+
+# Build results
+*.ilk
+*.idb
+*.tlog
+**/Debug/*.obj
+**/Release/*.obj
+**/Debug/*.pdb
+**/Release/*.pdb
+**/Debug/*.exe
+**/Release/*.exe
+
+# Visual Studio 2015 cache/options directory
+.vs/
+
+# Visual C++ cache files
+*.VC.db
